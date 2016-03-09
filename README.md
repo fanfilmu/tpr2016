@@ -1,0 +1,2 @@
+Techniki Programowania Równoległego
+==========
