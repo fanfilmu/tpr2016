@@ -3,6 +3,8 @@
 #include <time.h>
 #include "mpi_helpers.h"
 
+#define REPEAT_COUNT 1000
+
 void setup_random(int);
 double random_number();
 double estimate_pi(int);
@@ -14,12 +16,24 @@ int main(int argc, char** argv) {
 
   int total = atoi(argv[1]);
   int n = total / world_size;
-  int init = estimate_pi(n), result = 0;
 
-  MPI_Reduce(&init, &result, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+  int repeats = REPEAT_COUNT;
+  MPI_Barrier(MPI_COMM_WORLD);
+
+  int init, result;
+  double starttime, endtime;
+
+  starttime = MPI_Wtime();
+  while (repeats > 0) {
+    init = estimate_pi(n);
+    result = 0;
+    MPI_Reduce(&init, &result, 1, MPI_INT, MPI_SUM, 0, MPI_COMM_WORLD);
+    repeats--;
+  }
+  endtime = MPI_Wtime();
 
   if (world_rank == 0) {
-    printf("%d/%d (%f)\n", result, total, (double)result / total * 4);
+    printf("%d,%f\n", total, (endtime - starttime) / REPEAT_COUNT);
   }
 
   MPI_Finalize();
