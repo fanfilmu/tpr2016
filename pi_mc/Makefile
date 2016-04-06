@@ -6,3 +6,6 @@ run:
 
 local:
 	gcc -o pi_mc src/pi_mc.c -Wall
+
+zip:
+	zip pi_mc.zip src/*

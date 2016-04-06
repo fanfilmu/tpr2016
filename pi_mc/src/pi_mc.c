@@ -3,24 +3,26 @@
 #include <time.h>
 #include "mpi_helpers.h"
 
-#define REPEAT_COUNT 1000
+#define REPEAT_COUNT 10
+
+typedef unsigned long long int u64;
 
 void setup_random(int);
 double random_number();
-double estimate_pi(int);
+u64 estimate_pi(u64);
 
 int main(int argc, char** argv) {
   int world_rank, world_size;
   mpi_init(&world_size, &world_rank);
   setup_random(world_rank);
 
-  int total = atoi(argv[1]);
-  int n = total / world_size;
+  u64 total = atoll(argv[1]);
+  u64 n = total / world_size;
 
   int repeats = REPEAT_COUNT;
   MPI_Barrier(MPI_COMM_WORLD);
 
-  int init, result;
+  u64 init, result;
   double starttime, endtime;
 
   starttime = MPI_Wtime();
@@ -33,7 +35,7 @@ int main(int argc, char** argv) {
   endtime = MPI_Wtime();
 
   if (world_rank == 0) {
-    printf("%d,%f\n", total, (endtime - starttime) / REPEAT_COUNT);
+    printf("%f\n", (endtime - starttime) / REPEAT_COUNT);
   }
 
   MPI_Finalize();
@@ -48,8 +50,8 @@ double random_number() {
   return (double)rand() / (double)RAND_MAX;
 }
 
-double estimate_pi(int total_draw_count) {
-  int i, matched = 0;
+u64 estimate_pi(u64 total_draw_count) {
+  u64 i, matched = 0;
   double x, y;
 
   for (i = 0; i < total_draw_count; i++) {

@@ -88,9 +88,7 @@ def make
   execute "mpicc -o #{$workdir}/pi_mc #{sources} -Wall"
 end
 
-def run
-  experiment = Experiment.new(params)
-
+def run(experiment)
   [].tap do |results|
     experiment.problems do |processors, problem_size|
       time = execute "mpiexec -np #{processors} #{$workdir}/pi_mc #{problem_size}"
@@ -98,6 +96,23 @@ def run
       results << [processors, time.chop.to_f, problem_size]
     end
   end
+end
+
+def generate_metrics(raw_data, experiment)
+  one_core_time = raw_data.find { |data| data[0] == 1 }[1]
+  speedup = raw_data.map do |(cores, time, _)|
+    [cores, one_core_time / time * (experiment.scalable? ? cores : 1)]
+  end
+
+  efficiency = speedup.map do |(cores, speedup)|
+    [cores, speedup / cores]
+  end
+
+  serial_fraction = speedup.map do |(cores, speedup)|
+    [cores, cores == 1 ? 0 : (1 / speedup - 1 / cores) / (1 - 1 / cores)]
+  end
+
+  { speedup: speedup, efficiency: efficiency, serial_fraction: serial_fraction }
 end
 
 logger.debug format('Starting at %s', Time.now)
@@ -109,7 +124,17 @@ logger.debug 'compiling source...'
 make
 logger.debug 'compiled'
 
-result = { status: :ok, results: { raw: run } }
+experiment = Experiment.new(params)
+
+result = {
+  status: :ok,
+  results: {
+    raw: run(experiment)
+  }
+}
+
+result[:results].merge! generate_metrics(result[:results][:raw], experiment)
+
 logger.debug result.to_json
 
 File.open 'output.json', 'wb+' do |f|
