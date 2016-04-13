@@ -1,3 +1,4 @@
+require 'scalarm/parser/experiment'
 require 'scalarm/parser/result'
 
 module Scalarm
