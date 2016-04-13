@@ -1,2 +1,5 @@
 Metrics/LineLength:
   Max: 125
+
+AllCops:
+  TargetRubyVersion: 2.2
