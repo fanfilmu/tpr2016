@@ -30,8 +30,6 @@ module Scalarm
         plot_file.write metric_plot_command
         plot_file.close
 
-        binding.pry
-
         `gnuplot #{plot_file.path}`
       end
     end
@@ -42,7 +40,7 @@ module Scalarm
       "#{'not_' unless scaled}scaled_#{metric}.png"
     end
 
-    def build_plot_data_for_metric(metric, scaled: scaled)
+    def build_plot_data_for_metric(metric, scaled:)
       build_data_for_metric(metric, scaled: scaled).map do |processors, series|
         [processors, series].flatten.map(&:to_s).join(' ')
       end.join "\n"

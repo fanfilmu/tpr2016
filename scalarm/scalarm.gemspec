@@ -12,7 +12,7 @@ Gem::Specification.new do |spec|
   spec.summary       = 'Gem with helper classes for Scalarm experiments'
   spec.description   = 'This module includes various classes which help in executing, parsing and generating ' \
                        'results from Scalarm experiments'
-  spec.homepage      = 'git@github.com:fanfilmu/tpr2016.git'
+  spec.homepage      = ''
   spec.license       = 'MIT'
 
   # Prevent pushing this gem to RubyGems.org by setting 'allowed_push_host', or
