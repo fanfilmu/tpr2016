@@ -1,0 +1,57 @@
+templates:
+  header: |
+    set autoscale
+    set term png
+    set key outside
+    set term png size 1280, 720
+    set style line 1  lc rgb '#0060ad' lt 1 lw 2 pt 7 ps 1.5
+    set style line 2  lc rgb '#ad0060' lt 1 lw 2 pt 7 ps 1.5
+    set style line 3  lc rgb '#0060ad' lt 1 lw 2 pt 7 ps 1.5
+    set style line 4  lc rgb '#60ad00' lt 1 lw 2 pt 7 ps 1.5
+    set style line 5  lc rgb '#00ad60' lt 1 lw 2 pt 7 ps 1.5
+    set style line 6  lc rgb '#6000ad' lt 1 lw 2 pt 7 ps 1.5
+    set style line 7  lc rgb '#cc2277' lt 1 lw 2 pt 7 ps 1.5
+    set style line 8  lc rgb '#77cc22' lt 1 lw 2 pt 7 ps 1.5
+    set style line 9  lc rgb '#2277cc' lt 1 lw 2 pt 7 ps 1.5
+    set style line 10 lc rgb '#7722cc' lt 1 lw 2 pt 7 ps 1.5
+  description:
+    time:
+      true: |
+        set title "Scaled; time to processors"
+        set ylabel "Time [s]"
+        set xlabel "Number of processors"
+      false: |
+        set title "Not scaled; time to processors"
+        set ylabel "Time [s]"
+        set xlabel "Number of processors"
+    speed_up:
+      true: |
+        set title "Scaled; speed up to processors"
+        set ylabel "Speed up metric"
+        set xlabel "Number of processors"
+      false: |
+        set title "Not scaled; speed up to processors"
+        set ylabel "Speed up metric"
+        set xlabel "Number of processors"
+    efficiency:
+      true: |
+        set title "Scaled; efficiency to processors"
+        set ylabel "Efficiency metric"
+        set xlabel "Number of processors"
+      false: |
+        set title "Not scaled; efficiency to processors"
+        set ylabel "Efficiency metric"
+        set xlabel "Number of processors"
+    serial_fraction:
+      true: |
+        set title "Scaled; serial fraction to processors"
+        set ylabel "Serial fraction metric"
+        set xlabel "Number of processors"
+      false: |
+        set title "Not scaled; serial fraction to processors"
+        set ylabel "Serial fraction metric"
+        set xlabel "Number of processors"
+  plot: |
+    set output "%{output}"
+    plot \
+  serie: "\"%{path}\" using 1:%{serie} title \"%{title}\"  with linespoints ls %{style}"

@@ -10,6 +10,14 @@ module Scalarm
         calculate_metrics
       end
 
+      def scaled?
+        @scaled ||= data.first.scaled?
+      end
+
+      def problem_size
+        @problem_size ||= data.first.problem_size
+      end
+
       private
 
       def sequential_run_entry
