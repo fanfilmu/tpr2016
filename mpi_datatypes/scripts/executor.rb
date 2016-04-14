@@ -18,12 +18,14 @@ problem_size = experiment.inputs[:problem_size].to_i
 scaled = experiment.inputs[:scaled] == 'true'
 
 if scaled
-  problem_size = processors ** (1.0 / 3) * problem_size
+  problem_size = (processors ** (1.0 / 3) * problem_size).to_i
 end
+
+problem_size = problem_size - (problem_size % processors)
 
 mpiexec = "mpiexec -np #{processors} #{$workdir}/mpi_datatypes #{problem_size}"
 
-executor = Executor.new
+executor = Scalarm::Executor.new
 results = executor.execute do
   run 'module load libs/boost/1.52.0'
   run make
