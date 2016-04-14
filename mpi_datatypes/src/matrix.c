@@ -21,37 +21,37 @@ void fill_matrix(Matrix* matrix) {
   }
 }
 
-double multiply_cell(Matrix* left, Matrix* right, u64 x, u64 y) {
+double multiply_cell(Matrix* left, Matrix* right, u64 y, u64 x) {
   u64 i;
   double result = 0;
 
   for (i = 0; i < left->width; i++) {
-    result += left->data[i][y] * right->data[x][i];
+    result += left->data[y][i] * right->data[i][x];
   }
 
   return result;
 }
 
-void multiply_column(Matrix* left, Matrix* right, Matrix* result, u64 y) {
-  u64 i;
-  for (i = 0; i < left->height; i++) {
-    result->data[i][y] = multiply_cell(left, right, i, y);
+void multiply_column(Matrix* left, Matrix* right, Matrix* result, u64 x) {
+  u64 y;
+  for (y = 0; y < result->height; y++) {
+    result->data[y][x] = multiply_cell(left, right, y, x);
   }
 }
 
 void multiply_matrix(Matrix* left, Matrix* right, Matrix* result) {
-  u64 i;
-  for (i = 0; i < right->width; i++) {
-    multiply_column(left, right, result, i);
+  u64 x;
+  for (x = 0; x < result->width; x++) {
+    multiply_column(left, right, result, x);
   }
 }
 
 void index_matrix(Matrix* matrix) {
-  matrix->data = malloc(matrix->width * sizeof(double*));
+  matrix->data = malloc(matrix->height * sizeof(double*));
 
-  u64 i;
-  for (i = 0; i < matrix->width; i++) {
-    matrix->data[i] = matrix->block + i * matrix->height;
+  u64 y;
+  for (y = 0; y < matrix->height; y++) {
+    matrix->data[y] = matrix->block + y * matrix->width;
   }
 }
 
