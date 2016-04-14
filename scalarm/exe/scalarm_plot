@@ -1,0 +1,8 @@
+#!/usr/bin/env ruby
+
+require 'scalarm'
+
+data = File.read(File.expand_path ARGV[0])
+reader = Scalarm::Parser::CsvReader.new data
+plotter = Scalarm::Plotter.new reader.experiments
+plotter.plot
