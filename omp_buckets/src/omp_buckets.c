@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include <string.h>
 #include <sys/time.h>
 #include <omp.h>
 
@@ -71,9 +71,8 @@ int main(int argc, char** argv) {
 
       for (i = 1; i < thread_count; i++) {
         other_bucket = global_buckets[i] + bucket_num;
-        for (k = 0; k < other_bucket->count; k++) {
-          my_bucket->values[my_bucket->count++] = other_bucket->values[k];
-        }
+        memcpy(my_bucket->values + my_bucket->count, other_bucket->values, other_bucket->count);
+        my_bucket->count += other_bucket->count;
       }
     }
 
@@ -94,9 +93,7 @@ int main(int argc, char** argv) {
   {
     #pragma omp for
     for (i = 0; i < thread_count; i++) {
-      for (k = 0; k < global_buckets[0][i].count; k++) {
-        array[offsets[i]++] = global_buckets[0][i].values[k];
-      }
+      memcpy(array + offsets[i], global_buckets[0][i].values, global_buckets[0][i].count);
     }
   }
 
