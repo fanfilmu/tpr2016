@@ -4,7 +4,7 @@
 #include <sys/time.h>
 #include <omp.h>
 
-#define MAX_VALUE 2048
+#define MAX_VALUE 27720
 typedef unsigned long long int u64;
 
 typedef struct Bucket {
