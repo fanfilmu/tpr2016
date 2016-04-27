@@ -20,7 +20,7 @@ void initialize_bucket(Bucket*, int);
 int calculate_bucket_number(int);
 
 int main(int argc, char** argv) {
-  srand(time(NULL));
+  srand(826352);
 
   // command line parameters
   int thread_count;
