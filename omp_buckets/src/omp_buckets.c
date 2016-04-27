@@ -5,6 +5,7 @@
 #include <omp.h>
 
 #define MAX_VALUE 27720
+#define BUCKET_COUNT 120
 typedef unsigned long long int u64;
 
 typedef struct Bucket {
@@ -16,7 +17,7 @@ void parse_args(int, char**, int*, u64*);
 int compare(const void*, const void*);
 void fill_array(int*, u64);
 void initialize_bucket(Bucket*, int);
-int calculate_bucket_number(int, int);
+int calculate_bucket_number(int);
 
 int main(int argc, char** argv) {
   srand(time(NULL));
@@ -42,9 +43,9 @@ int main(int argc, char** argv) {
   global_buckets = (void*)malloc(sizeof(void*) * thread_count);
 
   for (i = 0; i < thread_count; i++) {
-    global_buckets[i] = (Bucket*)malloc(sizeof(Bucket) * thread_count);
+    global_buckets[i] = (Bucket*)malloc(sizeof(Bucket) * BUCKET_COUNT);
 
-    for (k = 0; k < thread_count; k++) {
+    for (k = 0; k < BUCKET_COUNT; k++) {
       initialize_bucket(global_buckets[i] + k, array_size);
     }
   }
@@ -58,13 +59,13 @@ int main(int argc, char** argv) {
     // Divide array to buckets
     #pragma omp for
     for (i = 0; i < array_size; i++) {
-      bucket_num = calculate_bucket_number(array[i], thread_count);
+      bucket_num = calculate_bucket_number(array[i]);
       buckets[bucket_num].values[buckets[bucket_num].count++] = array[i];
     }
 
     // join buckets
     #pragma omp for
-    for (bucket_num = 0; bucket_num < thread_count; bucket_num++) {
+    for (bucket_num = 0; bucket_num < BUCKET_COUNT; bucket_num++) {
       Bucket* other_bucket;
       Bucket* my_bucket;
       my_bucket = global_buckets[0] + bucket_num;
@@ -83,8 +84,8 @@ int main(int argc, char** argv) {
     }
   }
 
-  u64* offsets = (u64*)malloc(sizeof(u64) * thread_count);
-  for (k = 0, i = 0; i < thread_count; i++) {
+  u64* offsets = (u64*)malloc(sizeof(u64) * BUCKET_COUNT);
+  for (k = 0, i = 0; i < BUCKET_COUNT; i++) {
     offsets[i] = k;
     k += global_buckets[0][i].count;
   }
@@ -92,7 +93,7 @@ int main(int argc, char** argv) {
   #pragma omp parallel default(none) private(buckets, i, k) shared(array, offsets, global_buckets, thread_count)
   {
     #pragma omp for
-    for (i = 0; i < thread_count; i++) {
+    for (i = 0; i < BUCKET_COUNT; i++) {
       memcpy(array + offsets[i], global_buckets[0][i].values, global_buckets[0][i].count);
     }
   }
@@ -119,8 +120,8 @@ void parse_args(int argc, char** argv, int* thread_count, u64* array_size) {
   *thread_count = atoi(argv[2]);
 }
 
-int calculate_bucket_number(int value, int bucket_count) {
-  return value / (MAX_VALUE / bucket_count);
+int calculate_bucket_number(int value) {
+  return value / (MAX_VALUE / BUCKET_COUNT);
 }
 
 void initialize_bucket(Bucket* bucket, int max_bucket_size) {
