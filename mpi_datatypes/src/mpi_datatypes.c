@@ -5,8 +5,6 @@
 #include "matrix.h"
 #include "mpi_helpers.h"
 
-#define REPEAT_COUNT 20
-
 void setup_random(int);
 
 int main(int argc, char** argv) {
@@ -18,7 +16,6 @@ int main(int argc, char** argv) {
   u64 columns_per_proc = side / world_size;
 
   double starttime, endtime;
-  int repeats = REPEAT_COUNT;
 
   Matrix* left = create_matrix(side, side);
   Matrix* right = create_matrix(side, side);
@@ -32,29 +29,27 @@ int main(int argc, char** argv) {
   MPI_Barrier(MPI_COMM_WORLD);
 
   starttime = MPI_Wtime();
-  while (repeats > 0) {
-    MPI_Bcast(left->block, side * side, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    MPI_Datatype vectorType, resizedVectorType;
-    MPI_Type_vector(side, 1, side, MPI_DOUBLE, &vectorType);
-    MPI_Type_create_resized(vectorType, 0, sizeof(double), &resizedVectorType);
-    MPI_Type_commit(&resizedVectorType);
+  MPI_Bcast(left->block, side * side, MPI_DOUBLE, 0, MPI_COMM_WORLD);
 
-    MPI_Scatter(left->block, columns_per_proc, resizedVectorType, right->block, columns_per_proc, resizedVectorType, 0, MPI_COMM_WORLD);
+  MPI_Datatype vectorType, resizedVectorType;
+  MPI_Type_vector(side, 1, side, MPI_DOUBLE, &vectorType);
+  MPI_Type_create_resized(vectorType, 0, sizeof(double), &resizedVectorType);
+  MPI_Type_commit(&resizedVectorType);
 
-    u64 i;
-    for (i = 0; i < columns_per_proc; i++) {
-      multiply_column(left, right, result, i);
-    }
+  MPI_Scatter(left->block, columns_per_proc, resizedVectorType, right->block, columns_per_proc, resizedVectorType, 0, MPI_COMM_WORLD);
 
-    MPI_Gather(result->block, columns_per_proc, resizedVectorType, result->block, columns_per_proc, resizedVectorType, 0, MPI_COMM_WORLD);
-
-    repeats--;
+  u64 i;
+  for (i = 0; i < columns_per_proc; i++) {
+    multiply_column(left, right, result, i);
   }
+
+  MPI_Gather(result->block, columns_per_proc, resizedVectorType, result->block, columns_per_proc, resizedVectorType, 0, MPI_COMM_WORLD);
+
   endtime = MPI_Wtime();
 
   if (world_rank == 0) {
-    printf("%f\n", (endtime - starttime) / REPEAT_COUNT);
+    printf("%f\n", endtime - starttime);
   }
 
   MPI_Finalize();
