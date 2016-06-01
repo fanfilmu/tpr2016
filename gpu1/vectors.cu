@@ -5,10 +5,15 @@
 #include <math.h>
 #include "helper_functions.h"
 
+#ifndef max
+#define max(a,b) (((a) (b)) ? (a) : (b))
+#define min(a,b) (((a) < (b)) ? (a) : (b))
+#endif
+
 typedef unsigned long long u64;
 
-__global__ void add (int *a, int *b, int *c, u64 N) {
-  u64 tid = blockIdx.x * blockDim.x + threadIdx.x;
+__global__ void add (int *a, int *b, int *c, u64 N, u64 offset) {
+  u64 tid = blockIdx.x * blockDim.x + threadIdx.x + offset;
   if(tid < N) {
     c[tid] = a[tid] + b[tid];
   }
@@ -23,7 +28,7 @@ void cpu_add (int *a, int *b, int *c, u64 N) {
 
 int main(int argc, char** argv) {
   if (argc < 2) {
-    printf("Usage: ./vectors N\n");
+    printf("Usage: ./vectors N [block_size] [grid_size]\n");
     exit(-1);
   }
 
@@ -51,15 +56,30 @@ int main(int argc, char** argv) {
   cudaMemcpy(dev_b, host_b, N * sizeof(int), cudaMemcpyHostToDevice);
 
   u64 block_size, grid_size;
-  block_size = 1024;
-  grid_size = (int)ceil((double)N / block_size);
+
+  if (argc >= 3) {
+    block_size = atoll(argv[2]);
+  } else {
+    block_size = 1024;
+  }
+
+  if (argc >= 4) {
+    grid_size = atoll(argv[3]);
+  } else {
+    grid_size = min((int)ceil((double)N / block_size), 65535);
+  }
+
+  u64 offset = 0;
 
   sdkCreateTimer(&timer);
   sdkResetTimer(&timer);
   sdkStartTimer(&timer);
 
-  add <<<grid_size,block_size>>> (dev_a, dev_b, dev_c, N);
-  
+  while (offset < N) {
+    add <<<grid_size,block_size>>> (dev_a, dev_b, dev_c, N, offset);
+    offset += block_size * grid_size;
+  }
+
   cudaThreadSynchronize();
   sdkStopTimer(&timer);
   float time = sdkGetTimerValue(&timer);
